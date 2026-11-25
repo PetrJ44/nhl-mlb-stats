@@ -1,16 +1,24 @@
 name: Aktualizace statistik
 on:
   workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'data/**'
   schedule:
     - cron: '15 8 * * *'
 permissions:
   contents: write
+  pages: write
+  id-token: write
 concurrency:
   group: statistics-update
 jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 55
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,3 +33,14 @@ jobs:
             git commit -m 'Aktualizace statistik'
             git push
           fi
+      - uses: actions/configure-pages@v5
+      - name: Prepare site
+        run: |
+          mkdir -p _site/data
+          cp index.html style.css app.js _site/
+          cp data/nhl.json data/mlb.json _site/data/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
