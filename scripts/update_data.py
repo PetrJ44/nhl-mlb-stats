@@ -46,7 +46,18 @@ def nhl():
     missing=[g for k,g in games.items() if k not in cache]
     with ThreadPoolExecutor(max_workers=5) as pool:
         for g in pool.map(box,missing): cache[g["id"]]=g
-    save("nhl",dict(teams=teams,seasons=seasons,games=list(cache.values()),updated=dt.datetime.now(dt.timezone.utc).isoformat()))
+    names=old.get("names",{})
+    ids={p[0] for g in cache.values() for p in g["players"]}
+    def full_name(pid):
+        try:
+            p=get(base+"player/"+str(pid)+"/landing")
+            return str(pid),p["firstName"]["default"]+" "+p["lastName"]["default"]
+        except Exception:
+            return str(pid),None
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        for pid,name in pool.map(full_name,[i for i in ids if str(i) not in names]):
+            if name: names[pid]=name
+    save("nhl",dict(teams=teams,seasons=seasons,names=names,games=list(cache.values()),updated=dt.datetime.now(dt.timezone.utc).isoformat()))
 def mlb():
     seasons=[str(year-1),str(year)]
     base="https://statsapi.mlb.com/api/v1/"
