@@ -28,11 +28,11 @@ function renderNhl(){
    const h=p.history, periods=[h.slice(0,10),h.slice(0,20),h.slice(0,30),h.slice(0,40),h.filter(g=>g.season===current),h.filter(g=>g.season===data.seasons[0])];
    let weighted=0,total=0;const row=[(data.names?.[id]||p.name)+(team==='all'?' · '+latest.get(id):''),periods[4].length];
    periods.forEach((a,i)=>{const f=a.length?a.filter(g=>g.hit).length/a.length:null;row.push(a.length,f===null?null:100*f,f?1/f:null);if(f!==null){weighted+=f*weights[i];total+=weights[i]}});
-   const fair=weighted?total/weighted:null;const target=fair===null?null:fair*1.10;const qualifies=target!==null&&periods.every(a=>a.length>0&&a.some(g=>g.hit)&&Math.round(target*100)>Math.round(a.length/a.filter(g=>g.hit).length*100));row.push(fair,qualifies?target:null);rows.push(row);
+   const fair=weighted?total/weighted:null;row.push(fair,fair===null?null:fair*1.10);rows.push(row);
  }
  $('status').textContent=(team==='all'?'Všechny týmy':data.teams[team])+' · '+rows.length+' hráčů'+(filter==='all'?'':!Array.isArray(data.schedule)?' · Rozpis zatím není dostupný':' · Program NHL '+date+' · '+eligible.size+' týmů');
  $('updated').textContent='Aktualizace: '+new Date(data.updated).toLocaleString('cs-CZ');
- $('metrics').replaceChildren();$('distribution').textContent='Váhy: 10 zápasů 15 % · 20 zápasů 20 % · 30 zápasů 20 % · 40 zápasů 15 % · tato sezona 15 % · minulá sezona 15 %. Hledaný kurz = vážený kurz + 10 %; zobrazuje se pouze při překonání všech šesti dílčích kurzů. Chybějící období se vynechávají a váhy se přepočítají.';
+ $('metrics').replaceChildren();$('distribution').textContent='Váhy: 10 zápasů 15 % · 20 zápasů 20 % · 30 zápasů 20 % · 40 zápasů 15 % · tato sezona 15 % · minulá sezona 15 %. Hledaný kurz = vážený kurz + 10 %. Chybějící období se vynechávají a váhy se přepočítají.';
  const el=$('table');el.replaceChildren();const head=el.createTHead(), top=head.insertRow(), sub=head.insertRow();
  function th(tr,label,col,span=1,rowspan=1){const c=document.createElement('th');c.textContent=label;c.colSpan=span;c.rowSpan=rowspan;if(col!==null){c.tabIndex=0;c.onclick=()=>{desc=sort===col?!desc:col!==0;sort=col;render()};c.onkeydown=e=>{if(e.key==='Enter')c.click()};if(sort===col)c.textContent+=desc?' ↓':' ↑';}tr.append(c);return c}
  th(top,'Hráč',0,1,2).className='sticky-name';th(top,'GP letos',1,1,2).className='sticky-gp';
