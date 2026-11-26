@@ -57,7 +57,8 @@ def nhl():
     with ThreadPoolExecutor(max_workers=5) as pool:
         for pid,name in pool.map(full_name,[i for i in ids if str(i) not in names]):
             if name: names[pid]=name
-    save("nhl",dict(teams=teams,seasons=seasons,names=names,games=list(cache.values()),updated=dt.datetime.now(dt.timezone.utc).isoformat()))
+    schedule_games={g["id"]:dict(date=g["gameDate"],home=g["homeTeam"]["abbrev"],away=g["awayTeam"]["abbrev"]) for batch in schedules for g in batch if g["gameType"]==2 and str(g["season"])==seasons[-1] and g.get("gameScheduleState") not in ("PPD","CNCL")}
+    save("nhl",dict(teams=teams,seasons=seasons,names=names,schedule=list(schedule_games.values()),games=list(cache.values()),updated=dt.datetime.now(dt.timezone.utc).isoformat()))
 def mlb():
     seasons=[str(year-1),str(year)]
     base="https://statsapi.mlb.com/api/v1/"
